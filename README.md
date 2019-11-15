@@ -1,2 +1,133 @@
 # Car-Parking-System-Using-arduino
 This is the code and design of the car parking system made using the arduino, sensors &amp; servo motors...
+
+
+#include <Servo.h>
+Servo myservo;
+int y = 0;
+#include <Wire.h>
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+const int place[] = {13, 12, 11};
+byte val[6];
+const int in    = 4;
+const int out   = 3;
+int count = 0;
+int valin = 0;
+int valout = 0;
+int pos = 0;
+int cnt;
+void setup() {
+  Serial.begin(9600);
+  for (int i = 0; i < 3; i++)
+  {
+    pinMode(place[i], INPUT);
+  }
+
+  pinMode(in, INPUT);
+  pinMode(out, INPUT);
+
+  myservo.attach(9);
+
+  lcd.begin(16, 2);
+
+  lcd.setCursor(0, 0);
+  lcd.print("salam, jami3an");
+
+  myservo.write(0);
+
+  for (pos = 0; pos <= 40; pos += 1) {
+    myservo.write(pos);
+    delay(30);
+  }
+  delay(1000);
+  for (pos = 40; pos >= 0; pos -= 1) {
+    myservo.write(pos);
+    delay(30);
+  }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  count = 0;
+}
+
+void loop() {
+  //*******************************************************
+  lcd.setCursor(0, 0);
+  lcd.print("P-L:");
+  lcd.setCursor(0, 1);
+  for ( y = 0; y < 3; y++)
+  {
+    val[y] = digitalRead(place[y]);
+    if (val[y] == 1) {
+      lcd.print(y + 1);
+    }
+  }
+
+  lcd.print("       ");
+  valin = digitalRead(in);
+  valout = digitalRead(out);
+
+  if (count >= 3) {
+    count = 3; myservo.write(0); delay(1000); myservo.detach();
+    lcd.setCursor(5, 1);
+    lcd.print("       full");
+  }
+
+  //********************************************************
+  if (valout == LOW) {
+
+
+    for (pos = 0; pos <= 40; pos += 1) {
+      myservo.write(pos);
+      delay(30);
+    }
+
+    while (valout == LOW) {
+      valout = digitalRead(out);
+    }
+    count++;
+
+    if (count < 3) { }
+
+    delay(1000);
+    for (pos = 40; pos >= 0; pos -= 1) {
+      myservo.write(pos);
+      delay(30);
+    }
+  }
+  //********************************************************
+  if (valin == LOW) {
+
+    myservo.attach(5);
+    for (pos = 0; pos <= 40; pos += 1) {
+      myservo.write(pos);
+      delay(30);
+    }
+
+    while (valin == LOW) {
+      valin = digitalRead(in);
+    }
+    count--;
+
+    if (count <= 0) {
+      count = 0;
+    }
+
+    delay(1000);
+    for (pos = 40; pos >= 0; pos -= 1) {
+      myservo.write(pos);
+      delay(30);
+    }
+  }
+  //********************************************************
+  lcd.setCursor(10, 1);
+  lcd.print(" cnt:");
+  lcd.print(count);
+  if (count >= 3) {
+    lcd.setCursor(5, 1);
+    lcd.print("       full   ");
+  }
+
+}
